@@ -9,6 +9,7 @@ const PORT = process.env.PORT || 5000;
 const MONGO_URL = process.env.MONGO_URL;
 
 app.use(cors());
+app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'dist')));
 
@@ -48,6 +49,35 @@ app.get('/getCliaData', async (req, res) => {
     res.json(data);
   } catch (err) {
     res.status(500).send(err.message);
+  } finally {
+    await client.close();
+  }
+});
+
+app.post('/api/rsvp', async (req, res) => {
+  const { name, email, guestCount } = req.body;
+
+  let client = new MongoClient(MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('luncheonRSVP');
+    const formData = {
+      name,
+      email,
+      guestCount,
+    };
+
+    await collection.insertOne(formData);
+    res
+      .status(200)
+      .send({ success: true, message: 'Data inserted successfully' });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
   } finally {
     await client.close();
   }
