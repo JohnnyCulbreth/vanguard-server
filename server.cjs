@@ -56,7 +56,7 @@ app.get('/getCliaData', async (req, res) => {
 });
 
 app.post('/api/rsvp', async (req, res) => {
-  const { name, email, guestCount } = req.body;
+  const { name, phone, email, guestCount } = req.body;
 
   let client = new MongoClient(MONGO_URL, {
     useNewUrlParser: true,
@@ -69,6 +69,7 @@ app.post('/api/rsvp', async (req, res) => {
     const collection = database.collection('luncheonRSVP');
     const formData = {
       name,
+      phone,
       email,
       guestCount,
     };
