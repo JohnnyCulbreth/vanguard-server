@@ -84,6 +84,34 @@ app.post('/api/rsvp', async (req, res) => {
   }
 });
 
+app.post('/api/unsubscribe', async (req, res) => {
+  const { email } = req.body; // Destructure the email from the request body
+
+  let client = new MongoClient(MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('unsubscribe');
+    const unsubscribeData = {
+      email,
+      unsubscribedAt: new Date(),
+    };
+
+    await collection.insertOne(unsubscribeData);
+    res
+      .status(200)
+      .send({ success: true, message: 'Email unsubscribed successfully' });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server started on http://localhost:${PORT}`);
 });
