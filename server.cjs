@@ -55,6 +55,8 @@ app.get('/getCliaData', async (req, res) => {
   }
 });
 
+// Luncheon
+
 app.post('/api/rsvp', async (req, res) => {
   const { name, phone, email, guestCount } = req.body;
 
@@ -84,6 +86,40 @@ app.post('/api/rsvp', async (req, res) => {
     await client.close();
   }
 });
+
+// Skate Party
+
+app.post('/api/rsvpskate', async (req, res) => {
+  const { name, phone, email, guestCount } = req.body;
+
+  let client = new MongoClient(MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('alumniSkateRSVP');
+    const formData = {
+      name,
+      phone,
+      email,
+      guestCount,
+    };
+
+    await collection.insertOne(formData);
+    res
+      .status(200)
+      .send({ success: true, message: 'Data inserted successfully' });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// Unsubscribe
 
 app.post('/api/unsubscribe', async (req, res) => {
   const { email } = req.body; // Destructure the email from the request body
