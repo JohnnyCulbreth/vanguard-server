@@ -189,6 +189,38 @@ app.get('/skate-data', async (req, res) => {
   }
 });
 
+// Luncheon New RSVP
+
+app.post('/api/rsvpluncheon', async (req, res) => {
+  const { name, phone, email, guestCount } = req.body;
+
+  let client = new MongoClient(MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('newLuncheonRSVP');
+    const formData = {
+      name,
+      phone,
+      email,
+      guestCount,
+    };
+
+    await collection.insertOne(formData);
+    res
+      .status(200)
+      .send({ success: true, message: 'Data inserted successfully' });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server started on http://localhost:${PORT}`);
 });

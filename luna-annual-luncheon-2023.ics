@@ -26,7 +26,7 @@ BEGIN:VEVENT
 DTSTAMP:20230918T125604Z
 UID:1695041733695-66997@ical.marudot.com
 DTSTART;TZID=America/Chicago:20231207T110000
-DTEND;TZID=America/Chicago:20231207T140000
+DTEND;TZID=America/Chicago:20231207T130000
 SUMMARY:Luna Annual Luncheon
 DESCRIPTION:This year's focus is:\n\nThe New Paradigm of Intervention and Family Case Management\n\nOver the years Intervention and Family Case management has evolved into a much more holistic service\, and one that we have seen to be extremely valuable for families struggling with Substance Use Disorder and Mental Health.\n\n\nWe invite local providers\, our community and anyone interested in offering support and guidance to those struggling with substance use and/or mental health issues to come gain insights and knowledge from our panel of experts in the field.\n\nWe look forward to seeing you all in December!
 LOCATION:Houston Country Club
