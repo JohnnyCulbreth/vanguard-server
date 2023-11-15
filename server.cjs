@@ -5,7 +5,7 @@ const { MongoClient } = require('mongodb');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 const MONGO_URL = process.env.MONGO_URL;
 
 app.use(cors());
@@ -214,6 +214,102 @@ app.post('/api/rsvpluncheon', async (req, res) => {
     res
       .status(200)
       .send({ success: true, message: 'Data inserted successfully' });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// Check for RSVP for Luncheon
+
+app.get('/api/check-rsvp', async (req, res) => {
+  const { email } = req.query;
+
+  let client = new MongoClient(MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('luncheonRSVP');
+    const rsvp = await collection.findOne({ email });
+
+    if (rsvp) {
+      const hasGuests = rsvp.guestCount && parseInt(rsvp.guestCount) > 1;
+      const guestInfoExists =
+        Array.isArray(rsvp.guestInfo) && rsvp.guestInfo.length > 0;
+      res.json({
+        found: true,
+        hasGuests,
+        guestInfoExists,
+        guestCount: rsvp.guestCount,
+      });
+    } else {
+      res.json({ found: false });
+    }
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// Luncheon Update Guest Info
+
+app.post('/api/update-guests', async (req, res) => {
+  const { email, guests } = req.body;
+
+  let client = new MongoClient(MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('luncheonRSVP');
+
+    await collection.updateOne({ email }, { $set: { guestInfo: guests } });
+
+    res.json({
+      success: true,
+      message: 'Guest information updated successfully',
+    });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// Luna Luncheon Update Guest Count
+
+// Update Guest Count for Luncheon RSVP
+app.post('/api/update-guest-count', async (req, res) => {
+  const { email, newGuestCount } = req.body;
+
+  let client = new MongoClient(MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('luncheonRSVP');
+
+    await collection.updateOne(
+      { email },
+      { $set: { guestCount: newGuestCount } }
+    );
+
+    res.json({
+      success: true,
+      message: 'Guest count updated successfully',
+    });
   } catch (error) {
     res.status(500).send({ success: false, message: error.message });
   } finally {
