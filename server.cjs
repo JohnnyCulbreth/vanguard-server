@@ -285,8 +285,6 @@ app.post('/api/update-guests', async (req, res) => {
   }
 });
 
-// Luna Luncheon Update Guest Count
-
 // Update Guest Count for Luncheon RSVP
 app.post('/api/update-guest-count', async (req, res) => {
   const { email, newGuestCount } = req.body;
