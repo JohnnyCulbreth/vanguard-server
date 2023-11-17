@@ -21,10 +21,7 @@ app.get('/getCliaData', async (req, res) => {
   const itemsPerPage = 25;
   const skip = (page - 1) * itemsPerPage;
 
-  let client = new MongoClient(MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  let client = new MongoClient(MONGO_URL);
 
   try {
     await client.connect();
@@ -60,10 +57,7 @@ app.get('/getCliaData', async (req, res) => {
 app.post('/api/rsvp', async (req, res) => {
   const { name, phone, email, guestCount } = req.body;
 
-  let client = new MongoClient(MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  let client = new MongoClient(MONGO_URL);
 
   try {
     await client.connect();
@@ -92,10 +86,7 @@ app.post('/api/rsvp', async (req, res) => {
 app.post('/api/rsvpskate', async (req, res) => {
   const { name, phone, email, guestCount } = req.body;
 
-  let client = new MongoClient(MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  let client = new MongoClient(MONGO_URL);
 
   try {
     await client.connect();
@@ -122,12 +113,9 @@ app.post('/api/rsvpskate', async (req, res) => {
 // Unsubscribe
 
 app.post('/api/unsubscribe', async (req, res) => {
-  const { email } = req.body; // Destructure the email from the request body
+  const { email } = req.body;
 
-  let client = new MongoClient(MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  let client = new MongoClient(MONGO_URL);
 
   try {
     await client.connect();
@@ -194,10 +182,7 @@ app.get('/skate-data', async (req, res) => {
 app.post('/api/rsvpluncheon', async (req, res) => {
   const { name, phone, email, guestCount } = req.body;
 
-  let client = new MongoClient(MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  let client = new MongoClient(MONGO_URL);
 
   try {
     await client.connect();
@@ -226,10 +211,7 @@ app.post('/api/rsvpluncheon', async (req, res) => {
 app.get('/api/check-rsvp', async (req, res) => {
   const { email } = req.query;
 
-  let client = new MongoClient(MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  let client = new MongoClient(MONGO_URL);
 
   try {
     await client.connect();
@@ -262,10 +244,7 @@ app.get('/api/check-rsvp', async (req, res) => {
 app.post('/api/update-guests', async (req, res) => {
   const { email, guests } = req.body;
 
-  let client = new MongoClient(MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  let client = new MongoClient(MONGO_URL);
 
   try {
     await client.connect();
@@ -289,10 +268,7 @@ app.post('/api/update-guests', async (req, res) => {
 app.post('/api/update-guest-count', async (req, res) => {
   const { email, newGuestCount } = req.body;
 
-  let client = new MongoClient(MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  let client = new MongoClient(MONGO_URL);
 
   try {
     await client.connect();
@@ -307,6 +283,30 @@ app.post('/api/update-guest-count', async (req, res) => {
     res.json({
       success: true,
       message: 'Guest count updated successfully',
+    });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// Delete Guest Info for Luncheon RSVP
+app.post('/api/delete-guest-info', async (req, res) => {
+  const { email } = req.body;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('luncheonRSVP');
+
+    await collection.updateOne({ email }, { $unset: { guestInfo: '' } });
+
+    res.json({
+      success: true,
+      message: 'Guest information deleted successfully',
     });
   } catch (error) {
     res.status(500).send({ success: false, message: error.message });
