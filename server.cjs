@@ -63,13 +63,16 @@ app.post('/api/rsvp', async (req, res) => {
     await client.connect();
     const database = client.db('luna');
     const collection = database.collection('luncheonRSVP');
-    const formData = {
-      name,
-      phone,
-      email,
-      guestCount,
-    };
 
+    const existingRSVP = await collection.findOne({ email });
+    if (existingRSVP) {
+      return res.status(400).send({
+        success: false,
+        message: "You have already RSVP'd with this email address.",
+      });
+    }
+
+    const formData = { name, phone, email, guestCount };
     await collection.insertOne(formData);
     res
       .status(200)
