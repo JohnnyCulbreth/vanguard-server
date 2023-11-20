@@ -320,7 +320,7 @@ app.post('/api/delete-guest-info', async (req, res) => {
 
 // Private Dinner RSVP
 app.post('/api/rsvpPrivateDinner', async (req, res) => {
-  const { name, phone, email, guestCount } = req.body;
+  const { name, phone, email, guestCount, guestName } = req.body;
 
   let client = new MongoClient(MONGO_URL);
 
@@ -337,7 +337,7 @@ app.post('/api/rsvpPrivateDinner', async (req, res) => {
       });
     }
 
-    const formData = { name, phone, email, guestCount };
+    const formData = { name, phone, email, guestCount, guestName };
     await collection.insertOne(formData);
     res
       .status(200)
