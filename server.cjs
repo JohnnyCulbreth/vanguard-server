@@ -349,6 +349,37 @@ app.post('/api/rsvpPrivateDinner', async (req, res) => {
   }
 });
 
+// Golf Outing RSVP
+app.post('/api/rsvpGolfOuting', async (req, res) => {
+  const { name, phone, email } = req.body;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('golfOuting');
+
+    const existingRSVP = await collection.findOne({ email });
+    if (existingRSVP) {
+      return res.status(400).send({
+        success: false,
+        message: "You have already RSVP'd with this email address.",
+      });
+    }
+
+    const formData = { name, phone, email };
+    await collection.insertOne(formData);
+    res
+      .status(200)
+      .send({ success: true, message: 'RSVP submitted successfully' });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server started on http://localhost:${PORT}`);
 });
