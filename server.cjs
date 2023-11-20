@@ -143,10 +143,7 @@ app.post('/api/unsubscribe', async (req, res) => {
 // RSVP Luncheon Dashboard
 
 app.get('/luncheon-data', async (req, res) => {
-  const client = new MongoClient(MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  let client = new MongoClient(MONGO_URL);
 
   try {
     await client.connect();
@@ -160,17 +157,48 @@ app.get('/luncheon-data', async (req, res) => {
   }
 });
 
-// RSVP Luncheon Dashboard
+// RSVP Luncheon Dashboard Skate
 
 app.get('/skate-data', async (req, res) => {
-  const client = new MongoClient(MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  let client = new MongoClient(MONGO_URL);
 
   try {
     await client.connect();
     const collection = client.db('luna').collection('alumniSkateRSVP');
+    const data = await collection.find().sort({ name: 1 }).toArray();
+    res.json(data);
+  } catch (error) {
+    res.status(500).send('Error fetching data.');
+  } finally {
+    await client.close();
+  }
+});
+
+// RSVP Luncheon Dashboard Dinner
+
+app.get('/dinner-data', async (req, res) => {
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const collection = client.db('luna').collection('privateDinner');
+    const data = await collection.find().sort({ name: 1 }).toArray();
+    res.json(data);
+  } catch (error) {
+    res.status(500).send('Error fetching data.');
+  } finally {
+    await client.close();
+  }
+});
+
+// RSVP Luncheon Dashboard Golf
+
+app.get('/golf-data', async (req, res) => {
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const collection = client.db('luna').collection('golfOuting');
     const data = await collection.find().sort({ name: 1 }).toArray();
     res.json(data);
   } catch (error) {
