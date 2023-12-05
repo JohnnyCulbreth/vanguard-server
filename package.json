@@ -1,9 +1,12 @@
 {
   "dependencies": {
+    "aws-sdk": "^2.1506.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "mongodb": "^6.0.0"
+    "mongodb": "^6.0.0",
+    "nodemailer": "^6.9.7",
+    "nodemailer-ses-transport": "^1.5.1"
   },
   "scripts": {
     "start": "node server.cjs"

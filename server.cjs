@@ -4,6 +4,8 @@ const path = require('path');
 const { MongoClient } = require('mongodb');
 require('dotenv').config();
 
+const { ObjectId } = require('mongodb');
+
 const app = express();
 const PORT = process.env.PORT || 4000;
 const MONGO_URL = process.env.MONGO_URL;
@@ -402,6 +404,81 @@ app.post('/api/rsvpGolfOuting', async (req, res) => {
       .status(200)
       .send({ success: true, message: 'RSVP submitted successfully' });
   } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// Delete RSVP from RSVP Portal by ID for LUNCHEON
+app.delete('/api/delete-rsvp/:id', async (req, res) => {
+  const { id } = req.params;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('luncheonRSVP');
+
+    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 1) {
+      res.json({ success: true, message: 'RSVP deleted successfully' });
+    } else {
+      res.status(404).send({ success: false, message: 'RSVP not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// Delete RSVP from RSVP Portal by ID for GOLF EVENT
+app.delete('/api/delete-golf/:id', async (req, res) => {
+  const { id } = req.params;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('golfOuting');
+
+    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 1) {
+      res.json({ success: true, message: 'RSVP deleted successfully' });
+    } else {
+      res.status(404).send({ success: false, message: 'RSVP not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// Delete RSVP from RSVP Portal by ID for PRIVATE DINNER
+app.delete('/api/delete-dinner/:id', async (req, res) => {
+  const { id } = req.params;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('privateDinner');
+
+    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 1) {
+      res.json({ success: true, message: 'RSVP deleted successfully' });
+    } else {
+      res.status(404).send({ success: false, message: 'RSVP not found' });
+    }
+  } catch (error) {
+    console.error(error);
     res.status(500).send({ success: false, message: error.message });
   } finally {
     await client.close();
