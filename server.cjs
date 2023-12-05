@@ -485,6 +485,62 @@ app.delete('/api/delete-dinner/:id', async (req, res) => {
   }
 });
 
+// Edit Luncheon guestCount from Portal
+app.put('/api/update-guest-count/:id', async (req, res) => {
+  const { id } = req.params;
+  const { newGuestCount } = req.body;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('luncheonRSVP');
+
+    await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { guestCount: newGuestCount } }
+    );
+
+    res.json({
+      success: true,
+      message: 'Guest count updated successfully',
+    });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// Edit Luncheon confirmed status from Portal
+app.put('/api/update-confirm-status/:id', async (req, res) => {
+  const { id } = req.params;
+  const { confirmed, canceled } = req.body;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('luncheonRSVP');
+
+    await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { confirmed: confirmed, canceled: canceled } }
+    );
+
+    res.json({
+      success: true,
+      message: 'RSVP confirmation status updated successfully',
+    });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server started on http://localhost:${PORT}`);
 });
