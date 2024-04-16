@@ -541,6 +541,33 @@ app.put('/api/update-confirm-status/:id', async (req, res) => {
   }
 });
 
+// Navix Unsubscribe
+
+app.post('/api/navix-unsubscribe', async (req, res) => {
+  const { email } = req.body;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('navix');
+    const collection = database.collection('navixUnsubscribe');
+    const unsubscribeData = {
+      email,
+      unsubscribedAt: new Date(),
+    };
+
+    await collection.insertOne(unsubscribeData);
+    res
+      .status(200)
+      .send({ success: true, message: 'Email unsubscribed successfully' });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server started on http://localhost:${PORT}`);
 });
