@@ -571,7 +571,7 @@ app.post('/api/navix-unsubscribe', async (req, res) => {
 // RSVP Rest and Restore
 
 app.post('/api/rsvprr', async (req, res) => {
-  const { name, phone, email, guestCount } = req.body;
+  const { name, phone, email } = req.body;
 
   let client = new MongoClient(MONGO_URL);
 
@@ -579,19 +579,27 @@ app.post('/api/rsvprr', async (req, res) => {
     await client.connect();
     const database = client.db('luna');
     const collection = database.collection('alumniRrRSVP');
-    const formData = {
-      name,
-      phone,
-      email,
-      guestCount: '1',
-    };
 
+    // Check if an entry with the same email already exists
+    const existingEntry = await collection.findOne({ email });
+    if (existingEntry) {
+      return res.status(400).send({
+        success: false,
+        message: "You have already RSVP'd to this event.",
+      });
+    }
+
+    const formData = { name, phone, email, guestCount: '1' };
     await collection.insertOne(formData);
-    res
-      .status(200)
-      .send({ success: true, message: 'Data inserted successfully' });
+    res.status(200).send({
+      success: true,
+      message: 'Thank you for your RSVP!',
+    });
   } catch (error) {
-    res.status(500).send({ success: false, message: error.message });
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
   } finally {
     await client.close();
   }
