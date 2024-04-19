@@ -583,7 +583,7 @@ app.post('/api/rsvprr', async (req, res) => {
       name,
       phone,
       email,
-      guestCount,
+      guestCount: '1',
     };
 
     await collection.insertOne(formData);
@@ -597,7 +597,7 @@ app.post('/api/rsvprr', async (req, res) => {
   }
 });
 
-// RSVP Luncheon Dashboard Rest and Restore
+// RSVP Dashboard Rest and Restore
 
 app.get('/rr-data', async (req, res) => {
   let client = new MongoClient(MONGO_URL);
