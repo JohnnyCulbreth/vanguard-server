@@ -5,6 +5,7 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "mongodb": "^6.0.0",
+    "node-fetch": "^2.7.0",
     "nodemailer": "^6.9.7",
     "nodemailer-ses-transport": "^1.5.1"
   },

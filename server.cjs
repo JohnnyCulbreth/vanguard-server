@@ -568,6 +568,52 @@ app.post('/api/navix-unsubscribe', async (req, res) => {
   }
 });
 
+// RSVP Rest and Restore
+
+app.post('/api/rsvprr', async (req, res) => {
+  const { name, phone, email, guestCount } = req.body;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('alumniRrRSVP');
+    const formData = {
+      name,
+      phone,
+      email,
+      guestCount,
+    };
+
+    await collection.insertOne(formData);
+    res
+      .status(200)
+      .send({ success: true, message: 'Data inserted successfully' });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// RSVP Luncheon Dashboard Rest and Restore
+
+app.get('/rr-data', async (req, res) => {
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const collection = client.db('luna').collection('alumniRrRSVP');
+    const data = await collection.find().sort({ name: 1 }).toArray();
+    res.json(data);
+  } catch (error) {
+    res.status(500).send('Error fetching data.');
+  } finally {
+    await client.close();
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server started on http://localhost:${PORT}`);
 });
