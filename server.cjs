@@ -622,6 +622,76 @@ app.get('/rr-data', async (req, res) => {
   }
 });
 
+// RSVP Managing Teen Crisis
+
+app.post('/api/rsvpmtc', async (req, res) => {
+  const { name, phone, email } = req.body;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('mtcRSVP');
+
+    // Check if an entry with the same email already exists
+    const existingEntry = await collection.findOne({ email });
+    if (existingEntry) {
+      return res.status(400).send({
+        success: false,
+        message: "You have already RSVP'd to this event.",
+      });
+    }
+
+    // Check if the event has reached the maximum number of attendees
+    const rsvpCount = await collection.countDocuments();
+    if (rsvpCount >= 30) {
+      return res.status(400).send({
+        success: false,
+        message:
+          'Sorry! This event has reached the maximum number of attendees.',
+      });
+    }
+
+    const formData = {
+      name,
+      phone,
+      email,
+      guestCount: '1',
+      rsvpAt: new Date(),
+    };
+    await collection.insertOne(formData);
+    res.status(200).send({
+      success: true,
+      message: 'Thank you for your RSVP!',
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  } finally {
+    await client.close();
+  }
+});
+
+// RSVP Dashboard Managing Teen Crisis
+
+app.get('/mtc-data', async (req, res) => {
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const collection = client.db('luna').collection('mtcRSVP');
+    const data = await collection.find().sort({ name: 1 }).toArray();
+    res.json(data);
+  } catch (error) {
+    res.status(500).send('Error fetching data.');
+  } finally {
+    await client.close();
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server started on http://localhost:${PORT}`);
 });

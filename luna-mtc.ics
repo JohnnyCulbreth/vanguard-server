@@ -1,0 +1,39 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ical.marudot.com//iCal Event Maker
+CALSCALE:GREGORIAN
+BEGIN:VTIMEZONE
+TZID:America/Chicago
+LAST-MODIFIED:20231222T233358Z
+TZURL:https://www.tzurl.org/zoneinfo-outlook/America/Chicago
+X-LIC-LOCATION:America/Chicago
+BEGIN:DAYLIGHT
+TZNAME:CDT
+TZOFFSETFROM:-0600
+TZOFFSETTO:-0500
+DTSTART:19700308T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZNAME:CST
+TZOFFSETFROM:-0500
+TZOFFSETTO:-0600
+DTSTART:19701101T020000
+RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+DTSTAMP:20240606T153625Z
+UID:1717688116744-99915@ical.marudot.com
+DTSTART;TZID=America/Chicago:20240621T100000
+DTEND;TZID=America/Chicago:20240621T120000
+SUMMARY:Luna Integrative Care Presents: Managing Teen Crisis
+DESCRIPTION:Join us for an insightful and informative CE event at Luna Integrative Care\, designed to deepen your understanding of managing teen crises. Led by Alvaro Guevara\, LPC\, Director of Outpatient Services\, this session will explore the intricacies of teen crises\, the challenges therapists face\, and the strategies for considering higher levels of care. Additionally\, we will discuss the difficulties in coaching families during a home crisis. This limited-attendance event promises a comprehensive overview that will enhance your skills and knowledge in supporting teens and their families through difficult times. Reserve your spot today and ensure you are equipped to make a difference.
+LOCATION:5757 Woodway Dr. Suite 110  Houston\, TX 77057
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Luna Integrative Care Presents: Managing Teen Crisis
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT
+END:VCALENDAR
