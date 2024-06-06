@@ -633,8 +633,9 @@ app.post('/api/rsvpmtc', async (req, res) => {
     await client.connect();
     const database = client.db('luna');
     const collection = database.collection('mtcRSVP');
+    const overflowCollection = database.collection('mtcRSVPOverflow');
 
-    // Check if an entry with the same email already exists
+    // Check if an entry with the same email already exists in the main RSVP collection
     const existingEntry = await collection.findOne({ email });
     if (existingEntry) {
       return res.status(400).send({
@@ -643,16 +644,35 @@ app.post('/api/rsvpmtc', async (req, res) => {
       });
     }
 
-    // Check if the event has reached the maximum number of attendees
-    const rsvpCount = await collection.countDocuments();
-    if (rsvpCount >= 30) {
+    // Check if an entry with the same email already exists in the overflow collection
+    const existingOverflowEntry = await overflowCollection.findOne({ email });
+    if (existingOverflowEntry) {
       return res.status(400).send({
         success: false,
-        message:
-          'Sorry! This event has reached the maximum number of attendees.',
+        message: 'You have already been added to the waitlist for this event.',
       });
     }
 
+    // Check if the event has reached the maximum number of attendees
+    const rsvpCount = await collection.countDocuments();
+    if (rsvpCount >= 30) {
+      // Add the user to the overflow collection
+      const overflowData = {
+        name,
+        phone,
+        email,
+        guestCount: '1',
+        rsvpAt: new Date(),
+      };
+      await overflowCollection.insertOne(overflowData);
+      return res.status(200).send({
+        success: true,
+        message:
+          'Sorry! This event has reached the maximum number of attendees. You have been added to the waitlist. We will reach out with any new availability.',
+      });
+    }
+
+    // Add the user to the main RSVP collection
     const formData = {
       name,
       phone,
