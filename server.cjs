@@ -625,62 +625,163 @@ app.get('/rr-data', async (req, res) => {
 // RSVP Managing Teen Crisis
 
 app.post('/api/rsvpmtc', async (req, res) => {
-  const { name, phone, email } = req.body;
+  const { name, phone, email, attendance, isClinician } = req.body;
 
   let client = new MongoClient(MONGO_URL);
 
   try {
     await client.connect();
     const database = client.db('luna');
-    const collection = database.collection('mtcRSVP');
-    const overflowCollection = database.collection('mtcRSVPOverflow');
+    const inPersonCollection = database.collection('mtcRSVP');
+    const virtualCollection = database.collection('mtcRSVPVirtual');
+    const waitlistCollection = database.collection('mtcRSVPWaitlist');
+    const totalSubmissionsCollection = database.collection(
+      'mtcRSVPTotalSubmissions'
+    );
 
-    // Check if an entry with the same email already exists in the main RSVP collection
-    const existingEntry = await collection.findOne({ email });
-    if (existingEntry) {
+    // Check if an entry with the same email already exists in the total submissions collection
+    const existingTotalSubmission = await totalSubmissionsCollection.findOne({
+      email,
+    });
+
+    // If the user is already in the total submissions collection, but trying to switch to virtual
+    if (existingTotalSubmission && attendance === 'virtual') {
+      const existingVirtualEntry = await virtualCollection.findOne({ email });
+      const existingInPersonEntry = await inPersonCollection.findOne({ email });
+      if (!existingVirtualEntry && !existingInPersonEntry) {
+        // Update the attendance to virtual in the total submissions collection
+        await totalSubmissionsCollection.updateOne(
+          { email },
+          {
+            $set: {
+              attendance: 'virtual',
+              attemptedAttendance: existingTotalSubmission.attendance,
+            },
+          }
+        );
+
+        // Add the user to the virtual RSVP collection
+        const virtualSubmissionData = {
+          name,
+          phone,
+          email,
+          attendance,
+          isClinician,
+          guestCount: '1',
+          attemptedAttendance: existingTotalSubmission.attendance,
+          rsvpAt: new Date(),
+        };
+        await virtualCollection.insertOne(virtualSubmissionData);
+        return res.status(200).send({
+          success: true,
+          message:
+            'Thank you! You have been registered for virtual attendance.',
+        });
+      } else {
+        return res.status(400).send({
+          success: false,
+          message: "You have already RSVP'd to this event.",
+        });
+      }
+    }
+
+    if (!existingTotalSubmission) {
+      // Add the user to the total submissions collection
+      const totalSubmissionData = {
+        name,
+        phone,
+        email,
+        attendance,
+        isClinician,
+        guestCount: '1',
+        rsvpAt: new Date(),
+      };
+      await totalSubmissionsCollection.insertOne(totalSubmissionData);
+    }
+
+    // Check if an entry with the same email already exists in any collection
+    const existingInPersonEntry = await inPersonCollection.findOne({ email });
+    const existingVirtualEntry = await virtualCollection.findOne({ email });
+    const existingWaitlistEntry = await waitlistCollection.findOne({ email });
+
+    if (
+      existingInPersonEntry ||
+      existingVirtualEntry ||
+      existingWaitlistEntry
+    ) {
       return res.status(400).send({
         success: false,
         message: "You have already RSVP'd to this event.",
       });
     }
 
-    // Check if an entry with the same email already exists in the overflow collection
-    const existingOverflowEntry = await overflowCollection.findOne({ email });
-    if (existingOverflowEntry) {
-      return res.status(400).send({
-        success: false,
-        message: 'You have already been added to the waitlist for this event.',
-      });
-    }
+    // Check attendance type and process accordingly
+    if (attendance === 'in-person') {
+      if (isClinician === 'no') {
+        // Non-clinicians are always prompted to switch to virtual attendance
+        return res.status(400).send({
+          success: false,
+          message:
+            'Sorry! This event has reached the maximum number of in-person attendees. Would you like to attend virtually instead?',
+        });
+      }
 
-    // Check if the event has reached the maximum number of attendees
-    const rsvpCount = await collection.countDocuments();
-    if (rsvpCount >= 30) {
-      // Add the user to the overflow collection
-      const overflowData = {
+      const inPersonCount = await inPersonCollection.countDocuments();
+      if (inPersonCount >= 30) {
+        // Add the licensed clinician to the waitlist
+        const waitlistSubmissionData = {
+          name,
+          phone,
+          email,
+          attendance,
+          isClinician,
+          guestCount: '1',
+          attemptedAttendance: 'in-person',
+          rsvpAt: new Date(),
+        };
+        await waitlistCollection.insertOne(waitlistSubmissionData);
+
+        return res.status(400).send({
+          success: false,
+          message:
+            'Sorry! This event has reached the maximum number of in-person attendees. You have been added to the waitlist. Would you like to switch to virtual attendance instead? If not, you will be contacted if an in-person spot becomes available!',
+        });
+      }
+
+      // Add the user to the in-person RSVP collection
+      const inPersonSubmissionData = {
         name,
         phone,
         email,
+        attendance,
+        isClinician,
         guestCount: '1',
         rsvpAt: new Date(),
       };
-      await overflowCollection.insertOne(overflowData);
-      return res.status(200).send({
-        success: true,
-        message:
-          'Sorry! This event has reached the maximum number of attendees. You have been added to the waitlist. We will reach out with any new availability.',
-      });
+      await inPersonCollection.insertOne(inPersonSubmissionData);
+    } else {
+      // Check if an entry with the same email already exists in the virtual RSVP collection
+      const existingVirtualEntry = await virtualCollection.findOne({ email });
+      if (existingVirtualEntry) {
+        return res.status(400).send({
+          success: false,
+          message: "You have already RSVP'd to this event.",
+        });
+      }
+
+      // Add the user to the virtual RSVP collection
+      const virtualSubmissionData = {
+        name,
+        phone,
+        email,
+        attendance,
+        isClinician,
+        guestCount: '1',
+        rsvpAt: new Date(),
+      };
+      await virtualCollection.insertOne(virtualSubmissionData);
     }
 
-    // Add the user to the main RSVP collection
-    const formData = {
-      name,
-      phone,
-      email,
-      guestCount: '1',
-      rsvpAt: new Date(),
-    };
-    await collection.insertOne(formData);
     res.status(200).send({
       success: true,
       message: 'Thank you for your RSVP!',
