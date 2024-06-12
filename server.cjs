@@ -803,7 +803,7 @@ app.get('/mtc-data', async (req, res) => {
 
   try {
     await client.connect();
-    const collection = client.db('luna').collection('mtcRSVP');
+    const collection = client.db('luna').collection('mtcRSVPTotalSubmissions');
     const data = await collection.find().sort({ name: 1 }).toArray();
     res.json(data);
   } catch (error) {
