@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { MongoClient } = require('mongodb');
+const axios = require('axios');
 require('dotenv').config();
 
 const { ObjectId } = require('mongodb');
@@ -1009,6 +1010,144 @@ app.get('/mtc-data', async (req, res) => {
     res.json(data);
   } catch (error) {
     res.status(500).send('Error fetching data.');
+  } finally {
+    await client.close();
+  }
+});
+
+// JOB BOARD BELOW
+
+const API_KEY = process.env.API_KEY;
+const API_ENDPOINT =
+  'https://bb3api.topechelon.com/job_board/job_searches/one_off_search';
+
+app.use(express.json());
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'GET');
+    return res.status(200).json({});
+  }
+  next();
+});
+
+// Jobs with paginiation
+
+app.get('/jobs/:page', async (req, res) => {
+  const page = req.params.page || 1;
+  try {
+    const response = await axios.get(`${API_ENDPOINT}?page=${page}`, {
+      headers: {
+        Authorization: `Apikey ${API_KEY}`,
+      },
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+    res
+      .status(error.response ? error.response.status : 500)
+      .send('Server Error');
+  }
+});
+
+// Get Job Data by ID
+
+app.get('/job/:id', async (req, res) => {
+  try {
+    let currentPage = 1;
+    let jobFound = null;
+
+    while (!jobFound) {
+      const allJobsResponse = await axios.get(
+        `${API_ENDPOINT}?page=${currentPage}`,
+        {
+          headers: {
+            Authorization: `Apikey ${API_KEY}`,
+          },
+        }
+      );
+
+      jobFound = allJobsResponse.data.results.find(
+        (job) => job.id === req.params.id
+      );
+
+      if (jobFound || allJobsResponse.data.results.length === 0) {
+        break;
+      }
+
+      currentPage++;
+    }
+
+    if (!jobFound) {
+      return res.status(404).send('Job not found');
+    }
+
+    res.json(jobFound);
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+    res
+      .status(error.response ? error.response.status : 500)
+      .send('Server Error');
+  }
+});
+
+// Get Jobs by State
+
+app.get('/jobs', async (req, res) => {
+  const stateFilter = req.query.state;
+  try {
+    let allJobs = [];
+    let currentPage = 1;
+    let totalPages = 1;
+
+    do {
+      const response = await axios.get(`${API_ENDPOINT}?page=${currentPage}`, {
+        headers: {
+          Authorization: `Apikey ${API_KEY}`,
+        },
+      });
+
+      allJobs = [...allJobs, ...response.data.results];
+      totalPages = response.data.pagination.total_pages;
+      currentPage++;
+    } while (currentPage <= totalPages);
+
+    if (stateFilter) {
+      allJobs = allJobs.filter(
+        (job) => job.state && job.state.abbreviation === stateFilter
+      );
+    }
+
+    res.json(allJobs);
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+    res
+      .status(error.response ? error.response.status : 500)
+      .send('Server Error');
+  }
+});
+
+// Job Alerts
+
+app.post('/api/submit-email', async (req, res) => {
+  const { email, subscribedAt } = req.body;
+
+  try {
+    await client.connect();
+    const database = client.db('sante');
+    const jobAlerts = database.collection('jobAlerts');
+
+    const result = await jobAlerts.insertOne({ email, subscribedAt });
+    res.status(200).json({ message: 'Email saved', id: result.insertedId });
+  } catch (error) {
+    console.error('Error submitting email:', error);
+    res.status(500).send('Error saving email');
   } finally {
     await client.close();
   }

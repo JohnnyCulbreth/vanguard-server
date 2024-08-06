@@ -2,7 +2,7 @@ const { MongoClient } = require('mongodb');
 const { faker } = require('@faker-js/faker');
 require('dotenv').config();
 
-const MONGO_URL = process.env.MONGO_URL; // Replace with your actual MongoDB connection string
+const MONGO_URL = process.env.MONGO_URL;
 const DATABASE_NAME = 'luna';
 const IN_PERSON_COLLECTION = 'mtcRSVP';
 const TOTAL_SUBMISSIONS_COLLECTION = 'mtcRSVPTotalSubmissions';
