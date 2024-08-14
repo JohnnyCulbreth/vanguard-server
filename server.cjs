@@ -1036,7 +1036,13 @@ app.post('/api/rsvpfallalumni', async (req, res) => {
       });
     }
 
-    const formData = { name, phone, email, guestCount: '1' };
+    const formData = {
+      name,
+      phone,
+      email,
+      guestCount: '1',
+      rsvpAt: new Date(),
+    };
     await collection.insertOne(formData);
     res.status(200).send({
       success: true,
