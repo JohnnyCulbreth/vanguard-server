@@ -1015,6 +1015,60 @@ app.get('/mtc-data', async (req, res) => {
   }
 });
 
+// RSVP Fall Alumni Event
+
+app.post('/api/rsvpfallalumni', async (req, res) => {
+  const { name, phone, email } = req.body;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('alumniFallRSVP');
+
+    // Check if an entry with the same email already exists
+    const existingEntry = await collection.findOne({ email });
+    if (existingEntry) {
+      return res.status(400).send({
+        success: false,
+        message: "You have already RSVP'd to this event.",
+      });
+    }
+
+    const formData = { name, phone, email, guestCount: '1' };
+    await collection.insertOne(formData);
+    res.status(200).send({
+      success: true,
+      message: 'Thank you for your RSVP!',
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  } finally {
+    await client.close();
+  }
+});
+
+// RSVP Dashboard Fall Alumni Event
+
+app.get('/fallalumni-data', async (req, res) => {
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const collection = client.db('luna').collection('alumniFallRSVP');
+    const data = await collection.find().sort({ name: 1 }).toArray();
+    res.json(data);
+  } catch (error) {
+    res.status(500).send('Error fetching data.');
+  } finally {
+    await client.close();
+  }
+});
+
 // JOB BOARD BELOW
 
 const API_KEY = process.env.API_KEY;
