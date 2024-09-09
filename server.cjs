@@ -299,6 +299,7 @@ app.post('/api/update-guests', async (req, res) => {
 });
 
 // Update Guest Count for Luncheon RSVP
+
 app.post('/api/update-guest-count', async (req, res) => {
   const { email, newGuestCount } = req.body;
 
@@ -412,6 +413,7 @@ app.post('/api/rsvpGolfOuting', async (req, res) => {
 });
 
 // Delete RSVP from RSVP Portal by ID for LUNCHEON
+
 app.delete('/api/delete-rsvp/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -437,6 +439,7 @@ app.delete('/api/delete-rsvp/:id', async (req, res) => {
 });
 
 // Delete RSVP from RSVP Portal by ID for GOLF EVENT
+
 app.delete('/api/delete-golf/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -487,6 +490,7 @@ app.delete('/api/delete-dinner/:id', async (req, res) => {
 });
 
 // Edit Luncheon guestCount from Portal
+
 app.put('/api/update-guest-count/:id', async (req, res) => {
   const { id } = req.params;
   const { newGuestCount } = req.body;
@@ -515,6 +519,7 @@ app.put('/api/update-guest-count/:id', async (req, res) => {
 });
 
 // Edit Luncheon confirmed status from Portal
+
 app.put('/api/update-confirm-status/:id', async (req, res) => {
   const { id } = req.params;
   const { confirmed, canceled } = req.body;
@@ -1118,7 +1123,102 @@ app.post('/api/luncheon2024', async (req, res) => {
   }
 });
 
-// JOB BOARD BELOW
+// RSVP Luncheon Dashboard
+
+app.get('/luncheon-2024-data', async (req, res) => {
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const collection = client.db('luna').collection('luncheon2024RSVP');
+    const data = await collection.find().sort({ name: 1 }).toArray();
+    res.json(data);
+  } catch (error) {
+    res.status(500).send('Error fetching data.');
+  } finally {
+    await client.close();
+  }
+});
+
+app.delete('/api/delete-rsvp-luncheon-2024/:id', async (req, res) => {
+  const { id } = req.params;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('luncheon2024RSVP');
+
+    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 1) {
+      res.json({ success: true, message: 'RSVP deleted successfully' });
+    } else {
+      res.status(404).send({ success: false, message: 'RSVP not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+app.put('/api/update-guest-count-luncheon-2024/:id', async (req, res) => {
+  const { id } = req.params;
+  const { newGuestCount } = req.body;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('luncheon2024RSVP');
+
+    await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { guestCount: newGuestCount } }
+    );
+
+    res.json({
+      success: true,
+      message: 'Guest count updated successfully',
+    });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+app.put('/api/update-confirm-status-luncheon-2024/:id', async (req, res) => {
+  const { id } = req.params;
+  const { confirmed, canceled } = req.body;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('luncheon2024RSVP');
+
+    await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { confirmed: confirmed, canceled: canceled } }
+    );
+
+    res.json({
+      success: true,
+      message: 'RSVP confirmation status updated successfully',
+    });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// JOB BOARD BELOW -------------------------------------------------------
 
 const API_KEY = process.env.API_KEY;
 const API_ENDPOINT =
