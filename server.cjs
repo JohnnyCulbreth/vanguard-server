@@ -1075,6 +1075,49 @@ app.get('/fallalumni-data', async (req, res) => {
   }
 });
 
+// RSVP 2024 Luncheon
+
+app.post('/api/luncheon2024', async (req, res) => {
+  const { name, phone, email, guestCount } = req.body;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('luncheon2024RSVP');
+
+    // Check if an entry with the same email already exists
+    const existingEntry = await collection.findOne({ email });
+    if (existingEntry) {
+      return res.status(400).send({
+        success: false,
+        message: "You have already RSVP'd to this event.",
+      });
+    }
+
+    const formData = {
+      name,
+      phone,
+      email,
+      guestCount,
+      rsvpAt: new Date(),
+    };
+    await collection.insertOne(formData);
+    res.status(200).send({
+      success: true,
+      message: 'Thank you for your RSVP!',
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  } finally {
+    await client.close();
+  }
+});
+
 // JOB BOARD BELOW
 
 const API_KEY = process.env.API_KEY;
