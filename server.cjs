@@ -1278,6 +1278,65 @@ app.put('/api/update-confirm-status-luncheon-2024/:id', async (req, res) => {
   }
 });
 
+// BHCTO Unsubscribe
+
+// Unsubscribe Endpoint
+app.post('/api/bhcto-unsubscribe', async (req, res) => {
+  const { email } = req.body;
+
+  const client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('bhcto');
+    const collection = database.collection('unsubscribe');
+
+    const unsubscribeData = {
+      email,
+      unsubscribedAt: new Date(),
+    };
+
+    await collection.insertOne(unsubscribeData);
+    res
+      .status(200)
+      .send({ success: true, message: 'Email unsubscribed successfully' });
+  } catch (error) {
+    console.error('Error unsubscribing:', error);
+    res.status(500).send({ success: false, message: 'Internal Server Error' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Mark as Spam Endpoint
+app.post('/api/bhcto-unsubscribe/mark-spam', async (req, res) => {
+  const { email } = req.body;
+
+  const client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('bhcto');
+    const collection = database.collection('unsubscribe');
+
+    // Update the existing record or insert if not exists
+    await collection.updateOne(
+      { email },
+      { $set: { markedAsSpam: true, markedAsSpamAt: new Date() } },
+      { upsert: true }
+    );
+
+    res
+      .status(200)
+      .send({ success: true, message: 'Email marked as spam successfully' });
+  } catch (error) {
+    console.error('Error marking as spam:', error);
+    res.status(500).send({ success: false, message: 'Internal Server Error' });
+  } finally {
+    await client.close();
+  }
+});
+
 // JOB BOARD BELOW -------------------------------------------------------
 
 const API_KEY = process.env.API_KEY;
