@@ -1337,6 +1337,43 @@ app.post('/api/bhcto-unsubscribe/mark-spam', async (req, res) => {
   }
 });
 
+// Share Contact Info Endpoint
+app.post('/api/share-contact', async (req, res) => {
+  const { contactInfo, method, title, slug, submittedAt } = req.body;
+
+  if (!contactInfo || !method || !title || !slug) {
+    return res
+      .status(400)
+      .json({ success: false, message: 'Invalid data provided.' });
+  }
+
+  const client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('bhcto');
+    const collection = database.collection('sharedContactInfo');
+
+    const shareData = {
+      contactInfo,
+      method,
+      title,
+      slug,
+      submittedAt: new Date(submittedAt),
+    };
+
+    await collection.insertOne(shareData);
+    res
+      .status(200)
+      .send({ success: true, message: 'Data submitted successfully' });
+  } catch (error) {
+    console.error('Error submitting share data:', error);
+    res.status(500).send({ success: false, message: 'Internal Server Error' });
+  } finally {
+    await client.close();
+  }
+});
+
 // JOB BOARD BELOW -------------------------------------------------------
 
 const API_KEY = process.env.API_KEY;
