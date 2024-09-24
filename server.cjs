@@ -1063,6 +1063,36 @@ app.post('/api/rsvpfallalumni', async (req, res) => {
   }
 });
 
+// Fall Alumni update confirmation status on Dashboard
+
+app.put('/api/update-confirm-status-fallalumni-2024/:id', async (req, res) => {
+  const { id } = req.params;
+  const { confirmationStatus } = req.body;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('alumniFallRSVP');
+
+    await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { confirmationStatus: confirmationStatus } }
+    );
+
+    res.json({
+      success: true,
+      message: 'RSVP confirmation status updated successfully',
+    });
+  } catch (error) {
+    console.error('Error updating confirmation status:', error);
+    res.status(500).send({ success: false, message: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
 // RSVP Dashboard Fall Alumni Event
 
 app.get('/fallalumni-data', async (req, res) => {
