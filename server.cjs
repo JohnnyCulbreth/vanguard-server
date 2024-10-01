@@ -574,6 +574,43 @@ app.post('/api/navix-unsubscribe', async (req, res) => {
   }
 });
 
+// Navix AI Recommend Endpoint
+
+app.post('/api/recommend', async (req, res) => {
+  const { phoneNumber } = req.body;
+
+  const client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('navix');
+    const colleagueNumbers = database.collection('colleagueNumbers');
+
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneNumber || !phoneRegex.test(phoneNumber)) {
+      return res.status(400).json({
+        message: 'Invalid phone number. Please enter a 10-digit number.',
+      });
+    }
+
+    const result = await colleagueNumbers.insertOne({
+      phoneNumber,
+      submittedAt: new Date(),
+    });
+
+    return res
+      .status(200)
+      .json({ message: 'Phone number submitted successfully.' });
+  } catch (error) {
+    console.error('Error inserting phone number:', error);
+    return res
+      .status(500)
+      .json({ message: 'Internal server error. Please try again later.' });
+  } finally {
+    await client.close();
+  }
+});
+
 // RSVP Rest and Restore
 
 app.post('/api/rsvprr', async (req, res) => {
