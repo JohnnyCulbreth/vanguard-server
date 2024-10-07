@@ -1345,6 +1345,52 @@ app.put('/api/update-confirm-status-luncheon-2024/:id', async (req, res) => {
   }
 });
 
+// RSVP Staff Appreciation Dinner
+
+app.post('/api/rsvpstaffappreciation', async (req, res) => {
+  console.log(req.body);
+  const { name, tel, email, guestCount, dietaryRestrictions } = req.body;
+
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const database = client.db('luna');
+    const collection = database.collection('staffAppreciationDinnerRSVP');
+
+    // Check if an entry with the same email already exists
+    const existingEntry = await collection.findOne({ email });
+    if (existingEntry) {
+      return res.status(400).send({
+        success: false,
+        message: "You have already RSVP'd to this event.",
+      });
+    }
+
+    const formData = {
+      name,
+      phone: tel,
+      email,
+      guestCount,
+      dietaryRestrictions: dietaryRestrictions || '',
+      rsvpAt: new Date(),
+    };
+
+    await collection.insertOne(formData);
+    res.status(200).send({
+      success: true,
+      message: 'Thank you for your RSVP!',
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  } finally {
+    await client.close();
+  }
+});
+
 // BHCTO Unsubscribe
 
 // Unsubscribe Endpoint
