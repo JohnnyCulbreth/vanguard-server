@@ -23,11 +23,12 @@ RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU
 END:STANDARD
 END:VTIMEZONE
 BEGIN:VEVENT
-DTSTAMP:20241007T192731Z
-UID:1728329235990-78763@ical.marudot.com
+DTSTAMP:20241007T194223Z
+UID:1728330131595-12618@ical.marudot.com
 DTSTART;TZID=America/Chicago:20241108T180000
 DTEND;TZID=America/Chicago:20241108T200000
 SUMMARY:Luna Integrative Care Presents: Staff Appreciation Dinner
 DESCRIPTION:Join us for an elegant evening at the Houston Country Club as we celebrate the hard work and dedication of Luna’s exceptional staff. This special event is our way of showing appreciation for the passion\, commitment\, and care that each team member brings to our community. Enjoy a night of connection\, recognition\, and gratitude among colleagues and friends.
+LOCATION:1 Potomac Drive\, Houston\, TX 77057
 END:VEVENT
 END:VCALENDAR
