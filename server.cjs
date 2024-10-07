@@ -1391,6 +1391,25 @@ app.post('/api/rsvpstaffappreciation', async (req, res) => {
   }
 });
 
+// RSVP Dashboard Staff Appreciation Dinner
+
+app.get('/staffappreciationdinner-data', async (req, res) => {
+  let client = new MongoClient(MONGO_URL);
+
+  try {
+    await client.connect();
+    const collection = client
+      .db('luna')
+      .collection('staffAppreciationDinnerRSVP');
+    const data = await collection.find().sort({ name: 1 }).toArray();
+    res.json(data);
+  } catch (error) {
+    res.status(500).send('Error fetching data.');
+  } finally {
+    await client.close();
+  }
+});
+
 // BHCTO Unsubscribe
 
 // Unsubscribe Endpoint
