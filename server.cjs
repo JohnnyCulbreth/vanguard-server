@@ -1210,7 +1210,7 @@ app.get('/familyintensive-data', async (req, res) => {
 // RSVP 2024 Luncheon
 
 app.post('/api/luncheon2024', async (req, res) => {
-  const { name, phone, email, guestCount } = req.body;
+  const { name, tel, email, guestCount } = req.body;
 
   let client = new MongoClient(MONGO_URL);
 
@@ -1230,7 +1230,7 @@ app.post('/api/luncheon2024', async (req, res) => {
 
     const formData = {
       name,
-      phone,
+      phone: tel,
       email,
       guestCount,
       rsvpAt: new Date(),
